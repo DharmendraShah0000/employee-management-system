@@ -1,0 +1,20 @@
+# Render blueprint for the API. MongoDB should be a free MongoDB Atlas cluster.
+services:
+  - type: web
+    name: ems-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false          # paste your Atlas connection string in the Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: CLIENT_URL
+        sync: false          # your deployed frontend URL, e.g. https://ems.vercel.app

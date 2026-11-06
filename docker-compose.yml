@@ -1,0 +1,38 @@
+# Run the whole stack:  JWT_SECRET=$(openssl rand -hex 32) docker compose up --build
+# Then seed the first admin:  docker compose exec backend npm run seed:admin
+# (seed script uses ADMIN_* variables; defaults are admin@example.com / Admin@12345 -- change them!)
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on: [mongo]
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/employee_management
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET before running}
+      JWT_EXPIRES_IN: 1d
+      CLIENT_URL: http://localhost:8080
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@12345}
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "8080:80"
+
+volumes:
+  mongo_data:
